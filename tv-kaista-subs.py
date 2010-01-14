@@ -4,6 +4,8 @@ import os
 import re
 import urllib
 
+import gconf # depends on python-gconf
+
 # TODO:
 #   * watch directories for changes with inotify
 #   * find MIRO dir from settings
@@ -11,11 +13,20 @@ import urllib
 
 # http://alpha.tvkaista.fi/recordings/download/[:recording_id].srt
 KAISTA_DL_URL = "http://alpha.tvkaista.fi/recordings/download/"
-
-MIRO_DL_DIR = "/home/iiska/Videos/tv-kaista"
+# Use this if Miro settings can't be found
+FALLBACK_VIDEO_DIR = "~/Videos"
 
 yle_filter = re.compile(".*YLE.*(srt){0}$")
 id_filter = re.compile("_(\d+)\.[A-Za-z0-9]+\.[A-Za-z0-9]+$")
+
+def get_mirodir():
+    """ Finds Miro gconf settings and retries download directory """
+    client = gconf.client_get_default()
+    s = client.get_string("/apps/miro/MoviesDirectory")
+    if s:
+        return s
+    else:
+        return FALLBACK_VIDEO_DIR
 
 def listfiles(p, file_filter = None):
     """ Traverse directory recursively and find normal files.
@@ -48,7 +59,6 @@ def download_srt(videofile):
         print f.getcode()
 
 
-
-for f in listfiles(MIRO_DL_DIR, yle_filter):
+for f in listfiles(get_mirodir(), yle_filter):
     download_srt(f)
     
