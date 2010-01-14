@@ -16,7 +16,7 @@ GCONF_AUTH_KEY = "/apps/gnome-python-desktop/keyring_auth_token"
 # Use this if Miro settings can't be found
 FALLBACK_VIDEO_DIR = "~/Videos"
 
-YLE_FILTER = re.compile(".*YLE.*(srt){0}$")
+YLE_FILTER = re.compile(".*YLE.*(mp4|flv|ts)$")
 ID_FILTER = re.compile("_(\d+)\.[A-Za-z0-9]+\.[A-Za-z0-9]+$")
 
 def get_mirodir():
