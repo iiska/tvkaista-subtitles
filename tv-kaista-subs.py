@@ -2,8 +2,20 @@
 
 import os
 import re
+import urllib
+
+# TODO:
+#   * watch directories for changes with inotify
+#   * find MIRO dir from settings
+#
+
+# http://alpha.tvkaista.fi/recordings/download/[:recording_id].srt
+KAISTA_DL_URL = "http://alpha.tvkaista.fi/recordings/download/"
 
 MIRO_DL_DIR = "/home/iiska/Videos/tv-kaista"
+
+yle_filter = re.compile(".*YLE.*(srt){0}$")
+id_filter = re.compile("_(\d+)\.[A-Za-z0-9]+\.[A-Za-z0-9]+$")
 
 def listfiles(p, file_filter = None):
     """ Traverse directory recursively and find normal files.
@@ -24,5 +36,19 @@ def listfiles(p, file_filter = None):
 
     return ret
 
-yle_filter = re.compile(".*YLE.*")
-print listfiles(MIRO_DL_DIR, yle_filter)
+def download_srt(videofile):
+    f = urllib.urlopen("%s%s%s" % (KAISTA_DL_URL,
+                               id_filter.search(videofile).group(1),
+                               ".srt"))
+    if f.getcode() == 200:
+        output = open("%s%s" % (os.path.splitext(videofile)[0], ".srt"), "w")
+        output.write(f.read())
+        output.close()
+    else:
+        print f.getcode()
+
+
+
+for f in listfiles(MIRO_DL_DIR, yle_filter):
+    download_srt(f)
+    
