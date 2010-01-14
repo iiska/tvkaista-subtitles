@@ -1,9 +1,15 @@
 TV-kaista subtitles downloader
 ==============================
 
-Recursively looks around [Miro](http://getmiro.com) downloads
+Skripti tekstitysten lataamiseen [TVkaistan](http://tvkaista.fi) RSS
+-feedeistä [Mirolla](http://getmiro.com) ladatuille YLEn
+tekstitetyille ohjelmille. Skripti selvittää gconfin avulla Miron
+lataushakemiston ja käy sen sisällön läpi. TVkaistan tunnukset
+tallentuvat Gnome keyringiin.
+
+Recursively looks around [Miro's](http://getmiro.com) downloads
 directory for [YLE](http://www.yle.fi) programmes which are downloaded
-from [TV-kaista](http://tvkaista.fi) and tries to download *.srt
+from [TVkaista](http://tvkaista.fi) and tries to download *.srt
 subtitles for them.
 
 Dependencies
@@ -19,3 +25,5 @@ Features
 
 TODO
 ----
+
+* Daemon which uses inotify to watch changes in Miro's downloads directory
