@@ -14,9 +14,7 @@ import gconf # depends on python-gconf
 import gtk # For setting correct application name to be used with gnome keyring
 import gnomekeyring # For saving password
 
-# TODO:
-#   * watch directories for changes with inotify
-
+from pyinotify import WatchManager, Notifier, ThreadedNotifier, EventsCodes, ProcessEvent
 
 GCONF_AUTH_KEY = "/apps/gnome-python-desktop/keyring_auth_token"
 # Use this if Miro settings can't be found
@@ -161,10 +159,59 @@ def download_srt(videofile, credentials):
         print "Error %d for: %s" % (f.getcode(), videofile)
 
 
+class InotifyProcessing(ProcessEvent):
+    """ Catches Inotify events and starts subtitle downloads for
+    new files """
+
+    def __init__(self, credentials = None):
+        """ Stores credentials which are used when downloading. """
+        self.credentials = credentials
+
+    def process_IN_CREATE(self, event):
+        """ Catch new created files. """
+        self.process_new_video(os.path.join(event.path, event.name))
+
+    def process_IN_MOVED_TO(self, event):
+        """ Catch file move events. Eg. when video files is moved from
+        incomplete downloads directory to the actual directory. """
+        self.process_new_video(os.path.join(event.path, event.name))
+
+    def process_new_video(self, path):
+        """ Start download if filename matches filenames used with
+        YLE programmes. """
+        if os.path.isfile(path) and YLE_FILTER.match(path):
+            download_srt(path, self.credentials)
+
+
 if __name__ == "__main__":
+    # Get login information
     cred = get_login_password()
+
+    # Try to download subtitles for existing video files
     for video in listfiles(get_mirodir(), YLE_FILTER):
         if not os.path.isfile(os.path.splitext(video)[0] + ".srt"):
             download_srt(video, cred)
+
+    # Initialize Inotify directory watching
+    wm = WatchManager()
+    mask = EventsCodes.OP_FLAGS["IN_CREATE"] | EventsCodes.OP_FLAGS["IN_MOVED_TO"]
+    notifier = Notifier(wm, InotifyProcessing(cred))
+    # Add all directories in Miro dir recursively to the watch list
+    wdd = wm.add_watch(get_mirodir(), mask, rec = True)
+
+    # Keep watching directories and dowloading new subtitles until
+    # user quits with Ctrl+Q, or otherwise kills process.
+    import signal
+    signal.signal(signal.SIGTERM, notifier.stop)
+    while True:
+        try:
+            notifier.process_events()
+            if notifier.check_events():
+                # Read notified events and enqeue them
+                notifier.read_events()
+        except KeyboardInterrupt:
+            # Destroy the inotify's instance on this interrupt (stop monitoring)
+            notifier.stop()
+            break
 
 
