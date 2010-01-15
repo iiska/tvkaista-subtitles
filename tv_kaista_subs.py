@@ -1,4 +1,10 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# TVkaista subtitles downloader
+# ============================
+# Available at: http://github.com/iiska/tvkaista-subtitles
+# Author: Juhamatti Niemelä <iiska AT iki DOT fi>
 
 import os
 import re
@@ -116,7 +122,7 @@ def get_login_password():
     gconf.client_get_default().set_int(GCONF_AUTH_KEY, auth_token)
 
     return login, password
-    
+
 
 def listfiles(path, file_filter = None):
     """ Traverse directory recursively and find normal files.
@@ -161,4 +167,4 @@ if __name__ == "__main__":
         if not os.path.isfile(os.path.splitext(video)[0] + ".srt"):
             download_srt(video, cred)
 
-    
+
