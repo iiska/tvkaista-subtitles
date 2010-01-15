@@ -147,7 +147,7 @@ def download_srt(videofile, credentials):
                         credentials[1],
                         ID_FILTER.search(videofile).group(1)))
     if f.getcode() == 200:
-        output = open("%s%s" % (os.path.splitext(videofile)[0], ".srt"), "w")
+        output = open(os.path.splitext(videofile)[0] + ".srt", "w")
         output.write(f.read())
         output.close()
         print "Downloaded subtitles for: ", videofile
@@ -158,6 +158,7 @@ def download_srt(videofile, credentials):
 if __name__ == "__main__":
     cred = get_login_password()
     for video in listfiles(get_mirodir(), YLE_FILTER):
-        download_srt(video, cred)
+        if not os.path.isfile(os.path.splitext(video)[0] + ".srt"):
+            download_srt(video, cred)
 
     
