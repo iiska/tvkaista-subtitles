@@ -145,19 +145,21 @@ def download_srt(videofile, credentials):
     """ Download srt file from tvkaista.fi for videofile. Use credentials
     for authentication. """
     # http://alpha.tvkaista.fi/recordings/download/[:recording_id].srt
-    f = urllib.urlopen(
-        "http://%s:%s@alpha.tvkaista.fi/recordings/download/%s.srt" %
-                       (credentials[0],
-                        credentials[1],
-                        ID_FILTER.search(videofile).group(1)))
-    if f.getcode() == 200:
-        output = open(os.path.splitext(videofile)[0] + ".srt", "w")
-        output.write(f.read())
-        output.close()
-        print "Downloaded subtitles for: ", videofile
+    if ID_FILTER.search(videofile):
+        f = urllib.urlopen(
+            "http://%s:%s@alpha.tvkaista.fi/recordings/download/%s.srt" %
+            (credentials[0],
+             credentials[1],
+             ID_FILTER.search(videofile).group(1)))
+        if f.getcode() == 200:
+            output = open(os.path.splitext(videofile)[0] + ".srt", "w")
+            output.write(f.read())
+            output.close()
+            print "Downloaded subtitles for: ", videofile
+        else:
+            print "Error %d for: %s" % (f.getcode(), videofile)
     else:
-        print "Error %d for: %s" % (f.getcode(), videofile)
-
+        print "Problem with videofile name: ", videofile
 
 class InotifyProcessing(ProcessEvent):
     """ Catches Inotify events and starts subtitle downloads for
